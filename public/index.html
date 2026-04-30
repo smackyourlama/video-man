@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Man Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+        .card { border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+        button { padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Video Man Dashboard</h1>
+    
+    <div class="card">
+        <h3>1. AI Script Generation</h3>
+        <input type="text" id="topic" placeholder="Enter topic" />
+        <button onclick="generateScript()">Generate</button>
+        <pre id="scriptOutput"></pre>
+    </div>
+
+    <div class="card">
+        <h3>2. Video Processing</h3>
+        <input type="file" id="videoFile" accept="video/mp4" />
+        <button onclick="processVideo()">Process Video</button>
+        <p id="processStatus"></p>
+    </div>
+
+    <div class="card">
+        <h3>3. YouTube Upload</h3>
+        <button onclick="uploadToYouTube()">Upload to YouTube</button>
+        <p id="uploadStatus"></p>
+    </div>
+
+    <script>
+        let processedVideoPath = '';
+        let generatedTitle = '';
+
+        async function generateScript() {
+            const topic = document.getElementById('topic').value;
+            const res = await fetch('/api/generate-script', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic })
+            });
+            const data = await res.json();
+            document.getElementById('scriptOutput').innerText = `Title: ${data.title}\n\n${data.script}`;
+            generatedTitle = data.title;
+        }
+
+        async function processVideo() {
+            const file = document.getElementById('videoFile').files[0];
+            if (!file) return alert('Select a video first');
+            
+            document.getElementById('processStatus').innerText = 'Processing...';
+            
+            const formData = new FormData();
+            formData.append('video', file);
+            
+            const res = await fetch('/api/process-video', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            if (data.success) {
+                processedVideoPath = data.processedVideo;
+                document.getElementById('processStatus').innerText = `Processed: ${processedVideoPath}`;
+            } else {
+                document.getElementById('processStatus').innerText = 'Failed';
+            }
+        }
+
+        async function uploadToYouTube() {
+            if (!processedVideoPath) return alert('Process a video first');
+            document.getElementById('uploadStatus').innerText = 'Uploading...';
+            
+            const res = await fetch('/api/upload-youtube', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ videoPath: processedVideoPath, title: generatedTitle, description: 'Auto-uploaded by Video Man' })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                document.getElementById('uploadStatus').innerText = `Uploaded: ${data.url}`;
+            }
+        }
+    </script>
+</body>
+</html>
