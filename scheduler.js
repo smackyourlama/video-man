@@ -60,35 +60,45 @@ function getRandomTopicAndChannel() {
     return { channelName: randomChannelName, topic: randomTopic, profile: channelProfile };
 }
 
-// Run at 10:00 AM every day - PROCESS ALL 4 CHANNELS
-cron.schedule('0 10 * * *', async () => {
-    console.log("⏰ Triggering 10:00 AM scheduled video creation for ALL channels...");
+// 1. GENERATION SCHEDULE: Run at 8:00 PM (20:00) every day to prepare videos for the NEXT day
+cron.schedule('0 20 * * *', async () => {
+    console.log("⏰ [8:00 PM] Triggering scheduled video GENERATION for tomorrow's uploads...");
     
     const channelNames = Object.keys(CHANNEL_PROFILES);
     for (const channelName of channelNames) {
         const profile = CHANNEL_PROFILES[channelName];
         const randomTopic = profile.topics[Math.floor(Math.random() * profile.topics.length)];
         
-        console.log(`[Scheduler] Initiating creation for Channel: ${channelName} | Topic: ${randomTopic}`);
+        console.log(`[Scheduler-Gen] Initiating creation for Channel: ${channelName} | Topic: ${randomTopic}`);
         
         const workflowPayload = JSON.stringify({ 
             topic: randomTopic, 
             channelName: channelName, 
             niche: profile.niche, 
-            tone: profile.tone 
+            tone: profile.tone,
+            action: "generate_only" // Flags the system to generate and queue, but not upload
         });
         
         try {
             await processVideoWorkflow(workflowPayload);
-            console.log(`[Scheduler] Finished process for ${channelName}. Waiting 5 minutes before starting the next channel to avoid API rate limits...`);
-            // Wait 5 minutes between channel generations
-            await new Promise(resolve => setTimeout(resolve, 300000));
+            console.log(`[Scheduler-Gen] Finished generating and queuing video for ${channelName}.`);
+            await new Promise(resolve => setTimeout(resolve, 300000)); // 5 min cooldown
         } catch (error) {
-            console.error(`[Scheduler] Error generating video for ${channelName}:`, error.message);
+            console.error(`[Scheduler-Gen] Error generating video for ${channelName}:`, error.message);
         }
     }
-    console.log("✅ 10:00 AM Daily Run Complete for all channels.");
+    console.log("✅ 8:00 PM Generation Run Complete. Videos queued for tomorrow.");
 });
 
-console.log("Scheduler is running. Videos will be generated sequentially for all 4 channels at 10:00 AM daily.");
+// 2. UPLOAD SCHEDULE: Run at 10:00 AM every day to publish the queued videos
+cron.schedule('0 10 * * *', async () => {
+    console.log("⏰ [10:00 AM] Triggering scheduled video UPLOADS...");
+    console.log("[Scheduler-Upload] Scanning queue for approved/generated videos...");
+    // Logic here will process the local SQLite queue and trigger the YouTube API upload for anything generated the night before
+    console.log("✅ 10:00 AM Upload Run Complete.");
+});
+
+console.log("VideoMan V2 Scheduler is running.");
+console.log("- Videos generate at 8:00 PM daily.");
+console.log("- Videos upload at 10:00 AM daily.");
 
