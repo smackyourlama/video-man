@@ -1,0 +1,10 @@
+node_modules/
+.env
+processed/
+uploads/
+*.log
+dummy_audio.mp3
+refresh_token*.json
+tts/chatterbox/venv/
+tts/chatterbox/__pycache__/
+remotion/node_modules/
