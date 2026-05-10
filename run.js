@@ -1,16 +1,24 @@
 const fs = require('fs');
 const path = require('path');
-const { 
-    generateTTS,
-    fetchStockVideos, 
-    downloadFile, 
-    stitchVideosWithAudio,
-    createThumbnail,
-    uploadYouTubeVideo, 
-    authorizeYouTube
-} = require('./video_processor');
+const { createThumbnail, uploadYouTubeVideo, authorizeYouTube } = require('./video_processor');
 const { generateScriptChunked, generateThumbnailAssets } = require('./ai_chunking');
 const { saveVideoHistory } = require('./history_manager');
+const { execSync } = require('child_process');
+const { renderRemotionVideo } = require('./render_remotion');
+
+const getAudioDuration = (file) => {
+    try {
+        const ffmpegPath = '/data/.openclaw/workspace/video-man/node_modules/@ffmpeg-installer/linux-x64/ffmpeg';
+        const out = execSync(`${ffmpegPath} -i "${file}" 2>&1 | grep "Duration"`, {encoding: 'utf8'});
+        const match = out.match(/Duration: (\d+):(\d+):(\d+\.\d+)/);
+        if(match) {
+            return parseInt(match[1])*3600 + parseInt(match[2])*60 + parseFloat(match[3]);
+        }
+    } catch(e) {
+        console.error("FFmpeg duration parsing failed:", e.message);
+    }
+    return 10; // Fallback 10 seconds
+};
 
 async function processVideoWorkflow(payloadString) {
     let payload;
@@ -20,79 +28,96 @@ async function processVideoWorkflow(payloadString) {
         payload = { topic: payloadString };
     }
 
-    if (!payload.topic) {
-        throw new Error('Topic is required');
-    }
+    if (!payload.topic) throw new Error('Topic is required');
 
     try {
         console.log(`\n--- Starting workflow for payload: "${payloadString}" ---`);
-        await authorizeYouTube(); // Note: This might still default to Operator Logic for initial check, but upload forces the switch
+        await authorizeYouTube();
 
-        // 1. Generate Script and Title (Passing full payload for multi-channel using Chunking)
-        const { title, script, description } = await generateScriptChunked(payload);
+        // 1. Generate Chunked Scenes
+        const { title, description, scenes } = await generateScriptChunked(payload);
         const channelName = payload.channelName || "Operator Logic";
         console.log(`\nGenerated Title: ${title}`);
         console.log(`Target Channel: ${channelName}`);
-        console.log(`Generated Script excerpt: ${script.substring(0, 100)}...`);
+        console.log(`Generated ${scenes.length} programmatic scenes.`);
 
-        // 2. Generate TTS Audio
-        // const audioPath = await generateTTS(script);
-        // FOR TESTING: Bypass TTS generation and use a dummy file
-        const audioPath = path.join(__dirname, 'dummy_audio.mp3');
-        if (!fs.existsSync(audioPath)) {
-            // Create a 1-second silent mp3 using the bundled ffmpeg path instead of relying on global PATH
-            const ffmpegStaticPath = require('@ffmpeg-installer/ffmpeg').path;
-            require('child_process').execSync(`"${ffmpegStaticPath}" -f lavfi -i anullsrc=r=44100:cl=stereo -t 1 -q:a 9 -acodec libmp3lame ${audioPath}`);
-            console.log("Created dummy audio file for testing.");
+        // Move assets to public directory for Remotion to access
+        const remotionPublicDir = path.join(__dirname, 'remotion', 'public');
+        if (!fs.existsSync(remotionPublicDir)) fs.mkdirSync(remotionPublicDir, { recursive: true });
+
+        // 2. Generate TTS Audio per Scene
+        console.log("[Pipeline] Invoking locked Chatterbox voice service for each scene...");
+        let totalDuration = 0;
+        const processedScenes = [];
+
+        for (let i = 0; i < scenes.length; i++) {
+            const scene = scenes[i];
+            const textPath = path.join(__dirname, 'uploads', `scene-${i}-${Date.now()}.txt`);
+            fs.writeFileSync(textPath, scene.narrative);
+            
+            const audioFilename = `audio-scene-${i}-${Date.now()}.wav`;
+            const audioPath = path.join(__dirname, 'uploads', audioFilename);
+            
+            console.log(`[TTS] Generating locked audio for ${channelName} Scene ${i+1}/${scenes.length}...`);
+            execSync(
+                `python3 src/audio/chatterbox_voice_service.py --channel ${JSON.stringify(channelName)} --text-file ${JSON.stringify(textPath)} --output ${JSON.stringify(audioPath)} --segment-label ${JSON.stringify(`scene_${i + 1}`)}`,
+                { stdio: 'pipe' }
+            );
+
+            const durationSecs = getAudioDuration(audioPath);
+            console.log(`[TTS] Scene ${i+1} duration: ${durationSecs}s`);
+
+            // Copy to Remotion public dir
+            fs.copyFileSync(audioPath, path.join(remotionPublicDir, audioFilename));
+
+            processedScenes.push({
+                index: i,
+                audioFile: audioFilename, // Relative to public/ for Remotion
+                durationSeconds: durationSecs,
+                visualTheme: scene.visualTheme,
+                overlayText: scene.overlayText,
+                narrative: scene.narrative // Pass narrative for kinetic typography
+            });
+
+            totalDuration += durationSecs;
         }
-        console.log("Using dummy audio for testing upload routing.");
 
-        // 3. Fetch Stock Videos (Fetch ~15 videos to cover 7 minutes, since some are 30s+)
-        const videos = await fetchStockVideos(payload.topic, 1); 
-        if (videos.length === 0) {
-            throw new Error('No stock videos found for the topic. Aborting.');
-        }
+        console.log(`[Pipeline] All scenes generated. Total video length: ${totalDuration}s`);
 
-        const downloadedVideoPaths = [];
-        for (let i = 0; i < videos.length; i++) {
-            const bestVideoUrl = videos[i].video_files.find(f => f.quality === 'hd')?.link || videos[i].video_files[0].link;
-            try {
-                const p = await downloadFile(bestVideoUrl, `raw-${i}-${Date.now()}.mp4`);
-                downloadedVideoPaths.push(p);
-            } catch(e) {
-                console.error(`Error downloading video ${i}: ${e.message}`);
-            }
-        }
-
-        if(downloadedVideoPaths.length === 0) throw new Error("Failed to download any video clips");
-
-        // 4. Fetch Thumbnail Image & Create Thumbnail (using AI model)
+        // 3. Generate Thumbnail
         const { thumbnailText, thumbnailUrl } = await generateThumbnailAssets(payload, title);
         let finalThumbPath = null;
         if (thumbnailUrl) {
+            const { downloadFile } = require('./video_processor');
             const rawThumb = await downloadFile(thumbnailUrl, `raw-thumb-${Date.now()}.jpg`);
             finalThumbPath = await createThumbnail(rawThumb, thumbnailText);
         }
 
-        // 5. Stitch Videos together with Audio
-        const finalVideoPath = await stitchVideosWithAudio(downloadedVideoPaths, audioPath);
+        // 4. Render Remotion Video (Programmatic)
+        const videoDataPayload = {
+            channelTone: payload.tone,
+            totalDurationSeconds: totalDuration,
+            scenes: processedScenes
+        };
 
-        // 6. Upload to YouTube
-        const youtubeUrl = await uploadYouTubeVideo(finalVideoPath, title, description, finalThumbPath, channelName || "Operator Logic");
+        const finalVideoPath = path.join(__dirname, 'uploads', `final-remotion-${Date.now()}.mp4`);
+        await renderRemotionVideo(videoDataPayload, finalVideoPath);
+
+        // 5. Upload to YouTube
+        if (payload.action === "generate_only") {
+            console.log("Flag 'generate_only' detected. Skipping YouTube upload. Video saved locally.");
+            return;
+        }
+
+        const youtubeUrl = await uploadYouTubeVideo(finalVideoPath, title, description, finalThumbPath, channelName);
         console.log(`\n🎉 Video Man completed! Your video is uploaded at: ${youtubeUrl}`);
 
-        // 7. Save to Channel History
-        saveVideoHistory(channelName || "Operator Logic", {
-            topic: payload.topic,
-            title: title,
-            url: youtubeUrl
-        });
+        saveVideoHistory(channelName, { topic: payload.topic, title: title, url: youtubeUrl });
     } catch (error) {
         console.error('\n❌ Video Man encountered an error:', error.message);
     }
 }
 
-// Standalone execution support
 if (require.main === module) {
     const topic = process.argv[2];
     if(!topic) {

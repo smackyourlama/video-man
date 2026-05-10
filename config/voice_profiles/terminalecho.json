@@ -1,0 +1,28 @@
+{
+  "voice_profile_id": "terminalecho_v1",
+  "channel": "Terminalecho",
+  "model": "chatterbox",
+  "language_id": "en",
+  "reference_audio_path": "assets/voices/terminalecho/reference.wav",
+  "exaggeration": 0.42,
+  "cfg_weight": 0.32,
+  "temperature": 0.75,
+  "locked": true,
+  "voice_style": {
+    "gender": "male",
+    "age_range": "early 30s to mid 40s",
+    "pitch": "medium",
+    "pace": "clear, sharp, slightly faster than normal narration",
+    "tone": "technical, calm, alert, dry",
+    "energy": "medium-low",
+    "personality": "cybersecurity operator, incident responder, Linux-heavy analyst",
+    "avoid": [
+      "movie hacker voice",
+      "gamer streamer tone",
+      "overly dramatic whispers",
+      "AI robot delivery",
+      "cheesy fearmongering"
+    ]
+  },
+  "sample_test_line": "The attacker did not need magic. They needed one exposed port and a company that trusted default settings."
+}

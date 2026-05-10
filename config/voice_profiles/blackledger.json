@@ -1,0 +1,28 @@
+{
+  "voice_profile_id": "blackledger_v1",
+  "channel": "Blackledger",
+  "model": "chatterbox",
+  "language_id": "en",
+  "reference_audio_path": "assets/voices/blackledger/reference.wav",
+  "exaggeration": 0.45,
+  "cfg_weight": 0.36,
+  "temperature": 0.78,
+  "locked": true,
+  "voice_style": {
+    "gender": "male",
+    "age_range": "mid 30s to late 40s",
+    "pitch": "medium-low",
+    "pace": "measured, confidential, deliberate",
+    "tone": "shadow-finance, analytical, skeptical, controlled",
+    "energy": "low",
+    "personality": "forensic money tracker, intelligence narrator, quiet cynic",
+    "avoid": [
+      "Wall Street bro energy",
+      "crypto hype voice",
+      "sensational conspiracy yelling",
+      "radio announcer polish",
+      "cartoon menace"
+    ]
+  },
+  "sample_test_line": "Money rarely disappears. It changes costumes, crosses a border, and waits for investigators to get tired."
+}

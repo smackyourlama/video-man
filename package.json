@@ -4,8 +4,10 @@
   "description": "Automated YouTube Video Generation Platform",
   "main": "run.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node run.js \"Your First Video Topic Here\""
+    "test": "python3 scripts/test_voice_profiles.py && python3 scripts/audit_voice_pipeline.py",
+    "start": "node run.js \"Your First Video Topic Here\"",
+    "voice:test": "python3 scripts/test_voice_profiles.py",
+    "voice:audit": "python3 scripts/audit_voice_pipeline.py"
   },
   "keywords": [
     "video",
@@ -23,7 +25,6 @@
     "axios": "^1.15.2",
     "dotenv": "^17.4.2",
     "fluent-ffmpeg": "^2.1.3",
-    "google-tts-api": "^2.0.2",
     "googleapis": "^171.4.0",
     "node-cron": "^4.2.1",
     "openai": "^6.37.0"

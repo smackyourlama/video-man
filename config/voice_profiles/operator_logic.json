@@ -1,0 +1,28 @@
+{
+  "voice_profile_id": "operator_logic_v1",
+  "channel": "Operator Logic",
+  "model": "chatterbox",
+  "language_id": "en",
+  "reference_audio_path": "assets/voices/operator_logic/reference.wav",
+  "exaggeration": 0.48,
+  "cfg_weight": 0.38,
+  "temperature": 0.8,
+  "locked": true,
+  "voice_style": {
+    "gender": "male",
+    "age_range": "late 30s to early 40s",
+    "pitch": "medium-low",
+    "pace": "controlled and deliberate",
+    "tone": "calm, strategic, confident, slightly mischievous",
+    "energy": "low-to-medium",
+    "personality": "operator, dealmaker, quiet strategist",
+    "avoid": [
+      "hype",
+      "sales-bro delivery",
+      "overexcited YouTube voice",
+      "corporate training tone",
+      "cartoon villain voice"
+    ]
+  },
+  "sample_test_line": "Most people chase shiny objects. Operators buy the machine behind the shiny object."
+}

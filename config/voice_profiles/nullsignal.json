@@ -1,0 +1,28 @@
+{
+  "voice_profile_id": "nullsignal_v1",
+  "channel": "NullSignal",
+  "model": "chatterbox",
+  "language_id": "en",
+  "reference_audio_path": "assets/voices/nullsignal/reference.wav",
+  "exaggeration": 0.4,
+  "cfg_weight": 0.34,
+  "temperature": 0.74,
+  "locked": true,
+  "voice_style": {
+    "gender": "male",
+    "age_range": "late 20s to late 30s",
+    "pitch": "medium",
+    "pace": "steady, observant, slightly clipped",
+    "tone": "bleak, precise, understated, surveillance-minded",
+    "energy": "low-to-medium",
+    "personality": "signal analyst, pattern hunter, detached witness",
+    "avoid": [
+      "broadcast news anchor tone",
+      "melodrama",
+      "fake spooky whispering",
+      "teen gamer energy",
+      "generic AI assistant delivery"
+    ]
+  },
+  "sample_test_line": "The signal did not vanish. It was buried under enough noise to make everyone stop looking."
+}
