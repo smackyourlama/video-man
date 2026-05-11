@@ -7,7 +7,7 @@ const openai = new OpenAI({
 });
 
 async function generateScriptChunked(payload) {
-    console.log(`[ScriptGen] Generating fast-paced scene-by-scene script for: ${payload.topic}`);
+    console.log(`[ScriptGen] Generating ultra-fast scene-by-scene script for: ${payload.topic}`);
     
     // Fetch History to prevent duplication
     const pastVideos = getChannelHistory(payload.channelName);
@@ -23,7 +23,7 @@ async function generateScriptChunked(payload) {
         messages: [
             {
                 role: "system",
-                content: `You are an expert scriptwriter for the YouTube channel '${payload.channelName}'. Niche: ${payload.niche}. Tone: ${payload.tone}. Return ONLY valid JSON containing "title", "description", and an array "scenes". Each scene represents a fast-paced visual chunk of the video, rendered entirely with motion graphics.${historyContext}`
+                content: `You are an expert scriptwriter for the YouTube channel '${payload.channelName}'. Niche: ${payload.niche}. Tone: ${payload.tone}. Return ONLY valid JSON containing "title", "description", and an array "scenes". Each scene represents an ultra-fast visual chunk of the video, rendered entirely with motion graphics.${historyContext}`
             },
             {
                 role: "user",
@@ -32,11 +32,17 @@ async function generateScriptChunked(payload) {
 REQUIREMENTS:
 1. "title": A compelling YouTube title.
 2. "description": A 3-paragraph YouTube description. At the top, include 3 Amazon book recommendations formatted exactly as requested previously.
-3. "scenes": An array of VERY SHORT scene objects. To maintain a fast, high-retention pace, EACH scene must represent only about 4 to 6 seconds of spoken audio (approx 10-20 words, or 1-2 short sentences). For a full 7-minute video, generate roughly 60 to 80 scenes.
+3. "scenes": An array of VERY SHORT scene objects. To maintain a fast, high-retention pace, EACH scene must represent only about 3 to 4 seconds of spoken audio (approx 7-14 words, ideally one sharp idea). For a full 7-minute video, generate roughly 95 to 130 scenes.
    Each object MUST contain:
-   - "narrative": The exact spoken text for this ~5-second chunk. No brackets, no stage directions. Must flow smoothly into the next scene.
+   - "narrative": The exact spoken text for this 3-4 second chunk. No brackets, no stage directions. Must flow smoothly into the next scene.
    - "visualTheme": A programmatic visual style (e.g. "dark_gradient", "kinetic_glitch", "code_rain", "wireframe"). Alternate these frequently.
-   - "overlayText": A dynamic 2-5 word phrase taken DIRECTLY from the narrative. Because scenes are 5 seconds, this ensures the text on screen changes rapidly alongside the audio.`
+   - "overlayText": A punchy 2-4 word phrase taken DIRECTLY from the narrative.
+IMPORTANT PACING RULES:
+- Keep the narration punchy and clipped.
+- Change the core thought every scene.
+- Avoid long sentences.
+- Favor dramatic fragments over explanatory paragraphs.
+- The on-screen words should feel like they are changing constantly, not sitting on one sentence for too long.`
             }
         ],
         response_format: { type: "json_object" }
