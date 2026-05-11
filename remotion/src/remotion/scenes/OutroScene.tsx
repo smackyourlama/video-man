@@ -1,0 +1,5 @@
+import React from 'react';
+import { AbsoluteFill } from 'remotion';
+import { SceneBase } from './SceneBase';
+import { channelThemes, normalizeChannel } from '../styles/channelThemes';
+export const OutroScene: React.FC<any> = ({ channel, scene, progress }) => { const theme = channelThemes[normalizeChannel(channel)]; const normalized = normalizeChannel(channel); return <SceneBase channel={channel} scene={scene} progress={progress}><AbsoluteFill style={{ justifyContent:'center', alignItems:'center', padding:120 }}><div style={{ textAlign:'center' }}><div style={{ fontSize:82, fontWeight:900 }}>{normalized}</div><div style={{ fontSize:34, color: theme.palette.muted, marginTop:18 }}>Subscribe for the next breakdown.</div><div style={{ display:'flex', gap:24, marginTop:36, justifyContent:'center' }}><div style={{ width:340, height:190, border:`1px solid ${theme.palette.border}` }} /><div style={{ width:340, height:190, border:`1px solid ${theme.palette.border}` }} /></div></div></AbsoluteFill></SceneBase>; };

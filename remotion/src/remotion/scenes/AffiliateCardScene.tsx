@@ -1,0 +1,5 @@
+import React from 'react';
+import { AbsoluteFill } from 'remotion';
+import { SceneBase } from './SceneBase';
+import { channelThemes, normalizeChannel } from '../styles/channelThemes';
+export const AffiliateCardScene: React.FC<any> = ({ channel, scene, progress }) => { const theme = channelThemes[normalizeChannel(channel)]; return <SceneBase channel={channel} scene={scene} progress={progress}><AbsoluteFill style={{ justifyContent:'center', alignItems:'center' }}><div style={{ width:1080, padding:'36px 42px', background:'rgba(255,255,255,0.04)', border:`1px solid ${theme.palette.border}`, boxShadow:'0 26px 80px rgba(0,0,0,0.3)' }}><div style={{ color: theme.palette.primary, fontSize:18, letterSpacing:'0.16em', textTransform:'uppercase', marginBottom:18 }}>recommended tool</div><div style={{ fontSize:72, fontWeight:900 }}>{scene.title}</div><div style={{ fontSize:32, color: theme.palette.muted, marginTop:18, lineHeight:1.25 }}>{scene.narration_text}</div><div style={{ marginTop:22, fontSize:18, color: theme.palette.muted }}>Disclosure: affiliate link may appear in the description.</div></div></AbsoluteFill></SceneBase>; };

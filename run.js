@@ -6,6 +6,18 @@ const { saveVideoHistory } = require('./history_manager');
 const { execSync } = require('child_process');
 const { renderRemotionVideo } = require('./render_remotion');
 
+function normalizeChannelName(channelName) {
+    const raw = String(channelName || '').trim();
+    const key = raw.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const map = {
+        operatorlogic: 'Operator Logic',
+        terminalecho: 'Terminalecho',
+        blackledger: 'Blackledger',
+        nullsignal: 'NullSignal',
+    };
+    return map[key] || raw || 'Operator Logic';
+}
+
 function safeUnlink(filePath) {
     if (!filePath) return;
     try {
@@ -52,7 +64,7 @@ async function processVideoWorkflow(payloadString) {
 
         // 1. Generate Chunked Scenes
         const { title, description, scenes } = await generateScriptChunked(payload);
-        const channelName = payload.channelName || "Operator Logic";
+        const channelName = normalizeChannelName(payload.channelName || "Operator Logic");
         console.log(`\nGenerated Title: ${title}`);
         console.log(`Target Channel: ${channelName}`);
         console.log(`Generated ${scenes.length} programmatic scenes.`);
@@ -111,6 +123,11 @@ async function processVideoWorkflow(payloadString) {
 
         // 4. Render Remotion Video (Programmatic)
         const videoDataPayload = {
+            channel: channelName,
+            video_title: title,
+            title,
+            topic: payload.topic,
+            video_type: payload.videoType || 'long_form',
             channelTone: payload.tone,
             totalDurationSeconds: totalDuration,
             scenes: processedScenes

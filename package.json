@@ -8,7 +8,15 @@
     "start": "node run.js \"Your First Video Topic Here\"",
     "scheduler:start": "node scheduler.js",
     "voice:test": "python3 scripts/test_voice_profiles.py",
-    "voice:audit": "python3 scripts/audit_voice_pipeline.py"
+    "voice:audit": "python3 scripts/audit_voice_pipeline.py",
+    "remotion:preview:operator": "node scripts/render-remotion-sample.js operator preview",
+    "remotion:preview:terminalecho": "node scripts/render-remotion-sample.js terminalecho preview",
+    "remotion:preview:blackledger": "node scripts/render-remotion-sample.js blackledger preview",
+    "remotion:preview:nullsignal": "node scripts/render-remotion-sample.js nullsignal preview",
+    "remotion:render:operator": "node scripts/render-remotion-sample.js operator render",
+    "remotion:render:terminalecho": "node scripts/render-remotion-sample.js terminalecho render",
+    "remotion:render:blackledger": "node scripts/render-remotion-sample.js blackledger render",
+    "remotion:render:nullsignal": "node scripts/render-remotion-sample.js nullsignal render"
   },
   "keywords": [
     "video",

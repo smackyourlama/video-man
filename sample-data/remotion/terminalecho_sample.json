@@ -1,0 +1,15 @@
+{
+  "channel": "Terminalecho",
+  "video_title": "The Exposed Port That Got Them Owned",
+  "topic": "cybersecurity incident response",
+  "video_type": "long_form",
+  "duration_seconds": 34,
+  "script_sections": [
+    {"section_type":"hook","text":"One exposed port was all it took.","emotional_intensity":"high","keywords":["exposed port","logs","breach"]},
+    {"section_type":"explainer","text":"The attacker scanned the network, found the open service, and tested default credentials.","keywords":["scan","open service","credentials"]},
+    {"section_type":"diagram","text":"The compromise moved from internet edge to authentication to internal systems.","keywords":["edge","authentication","internal systems"]},
+    {"section_type":"stats","text":"Detection time matters because every extra minute expands attacker options.","keywords":["detection time","minutes","options"]},
+    {"section_type":"outro","text":"Subscribe for more breach breakdowns.","keywords":["subscribe"]}
+  ],
+  "affiliate_mentions": [{"tool_name":"Password Manager","reason":"Stops credential reuse from turning into a breach.","disclosure":"Affiliate link may be included in the description."}]
+}

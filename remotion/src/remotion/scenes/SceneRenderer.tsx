@@ -1,0 +1,17 @@
+import React from 'react';
+import { HookScene } from './HookScene';
+import { ExplainerScene } from './ExplainerScene';
+import { DiagramScene } from './DiagramScene';
+import { ChecklistScene } from './ChecklistScene';
+import { StatsScene } from './StatsScene';
+import { QuoteScene } from './QuoteScene';
+import { CodeTerminalScene } from './CodeTerminalScene';
+import { FinanceLedgerScene } from './FinanceLedgerScene';
+import { AcquisitionBoardScene } from './AcquisitionBoardScene';
+import { PrivacyDossierScene } from './PrivacyDossierScene';
+import { CyberThreatScene } from './CyberThreatScene';
+import { AffiliateCardScene } from './AffiliateCardScene';
+import { SponsorReadScene } from './SponsorReadScene';
+import { OutroScene } from './OutroScene';
+const map: Record<string, React.FC<any>> = { HookScene, ExplainerScene, DiagramScene, ChecklistScene, StatsScene, QuoteScene, CodeTerminalScene, FinanceLedgerScene, AcquisitionBoardScene, PrivacyDossierScene, CyberThreatScene, AffiliateCardScene, SponsorReadScene, OutroScene };
+export const SceneRenderer: React.FC<any> = ({ channel, scene, progress }) => { const Comp = map[scene.sceneComponent] || ExplainerScene; return <Comp channel={channel} scene={scene} progress={progress} />; };

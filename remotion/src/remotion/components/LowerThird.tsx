@@ -1,0 +1,2 @@
+import React from 'react';
+export const LowerThird: React.FC<{ label: string; subtitle?: string; color: string; muted: string }> = ({ label, subtitle, color, muted }) => <div style={{ position: 'absolute', left: 58, bottom: 54, padding: '18px 22px', background: 'rgba(4,9,18,0.7)', borderLeft: `4px solid ${color}`, maxWidth: 620 }}><div style={{ color, fontSize: 18, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>{subtitle ? <div style={{ color: muted, fontSize: 28, lineHeight: 1.15 }}>{subtitle}</div> : null}</div>;

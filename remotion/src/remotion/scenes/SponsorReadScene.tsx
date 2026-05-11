@@ -1,0 +1,5 @@
+import React from 'react';
+import { AbsoluteFill } from 'remotion';
+import { SceneBase } from './SceneBase';
+import { channelThemes, normalizeChannel } from '../styles/channelThemes';
+export const SponsorReadScene: React.FC<any> = ({ channel, scene, progress }) => { const theme = channelThemes[normalizeChannel(channel)]; return <SceneBase channel={channel} scene={scene} progress={progress}><AbsoluteFill style={{ justifyContent:'center', alignItems:'center' }}><div style={{ width:980, padding:'38px', background:'rgba(255,255,255,0.04)', border:`1px solid ${theme.palette.border}` }}><div style={{ color: theme.palette.primary, textTransform:'uppercase', letterSpacing:'0.16em', marginBottom:16 }}>sponsor segment</div><div style={{ fontSize:68, fontWeight:900 }}>{scene.title}</div><div style={{ fontSize:30, color: theme.palette.muted, marginTop:18 }}>{scene.narration_text}</div><div style={{ marginTop:20, color: theme.palette.muted }}>Offer details and disclaimer belong in the description and narration.</div></div></AbsoluteFill></SceneBase>; };

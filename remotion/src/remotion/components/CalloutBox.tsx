@@ -1,0 +1,2 @@
+import React from 'react';
+export const CalloutBox: React.FC<{ title: string; body: string; color: string }> = ({ title, body, color }) => <div style={{ padding: '20px 24px', border: `1px solid ${color}`, background: 'rgba(255,255,255,0.04)', borderRadius: 16, maxWidth: 480 }}><div style={{ color, fontSize: 20, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{title}</div><div style={{ color: 'white', fontSize: 28, lineHeight: 1.2 }}>{body}</div></div>;

@@ -1,0 +1,2 @@
+import React from 'react';
+export const LogoBug: React.FC<{ text: string; color: string }> = ({ text, color }) => <div style={{ position: 'absolute', top: 30, right: 36, width: 48, height: 48, borderRadius: 14, border: `1px solid ${color}`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, letterSpacing: '0.06em', background: 'rgba(0,0,0,0.28)' }}>{text}</div>;

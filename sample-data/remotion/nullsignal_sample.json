@@ -1,0 +1,15 @@
+{
+  "channel": "NullSignal",
+  "video_title": "How Tracking Became the Default Setting",
+  "topic": "privacy surveillance metadata tracking",
+  "video_type": "long_form",
+  "duration_seconds": 40,
+  "script_sections": [
+    {"section_type":"hook","text":"Surveillance does not begin with a camera. It begins with convenience.","emotional_intensity":"high","keywords":["surveillance","metadata","tracking"]},
+    {"section_type":"explainer","text":"Apps, brokers, devices, and login systems all leave traces that can be joined into identity.","keywords":["apps","brokers","identity"]},
+    {"section_type":"diagram","text":"A metadata trail is just a map of who you were near, when, and how often.","keywords":["metadata trail","map","identity"]},
+    {"section_type":"quote","text":"If the system remembers everything, privacy becomes a negotiation.","keywords":["privacy"]},
+    {"section_type":"outro","text":"Subscribe for more signal analysis.","keywords":["subscribe"]}
+  ],
+  "affiliate_mentions": [{"tool_name":"Privacy Toolkit","reason":"Helps reduce digital exhaust without pretending one tool fixes everything.","disclosure":"Affiliate link may be included in the description."}]
+}
