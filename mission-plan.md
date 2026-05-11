@@ -61,3 +61,12 @@ Client-server architecture with a web-based frontend dashboard and a Node.js/Exp
 * Implemented FFmpeg processing.
 * Fixed demo job to run properly.
 * Verified demo job runs without errors and skips YouTube upload.
+
+### 2026-05-10 20:58 EDT - Continuous 1000-upload scheduler
+* Added a persistent scheduler state layer in `scheduler_state.js` backed by `data/scheduler_state.json`.
+* Reworked `scheduler.js` into a resumable sequential loop that creates, uploads, and schedules videos one at a time until the configured target is reached.
+* Scheduler now stores `currentJob`, `completedUploads`, `failedUploads`, `nextPublishAt`, and job history so it can resume after interruptions.
+* Updated `run.js` to return structured job results and throw real errors so scheduler retries/failures can be tracked correctly.
+* Updated `video_processor.js` so uploads can be scheduled with YouTube `publishAt` instead of only immediate public publishing.
+* Added `npm run scheduler:start` for launching the continuous scheduler.
+* Current default cadence is controlled by `VIDEOMAN_PUBLISH_INTERVAL_MINUTES` and defaults to 60 minutes unless overridden.

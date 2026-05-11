@@ -247,7 +247,7 @@ async function createThumbnail(imagePath, titleText) {
     });
 }
 
-async function uploadYouTubeVideo(videoPath, title, description, thumbnailPath, channelName) {
+async function uploadYouTubeVideo(videoPath, title, description, thumbnailPath, channelName, options = {}) {
     // 1. Force clear the credentials object entirely before loading new ones
     oauth2Client.credentials = {};
     console.log(`[Upload] Credentials cleared for channel switch.`);
@@ -269,11 +269,21 @@ async function uploadYouTubeVideo(videoPath, title, description, thumbnailPath, 
         const safeDescription = description.replace(/[<>]/g, "");
         
         const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
+        const publishAt = options.publishAt ? new Date(options.publishAt).toISOString() : null;
+        const status = publishAt
+            ? {
+                privacyStatus: 'private',
+                publishAt,
+                selfDeclaredMadeForKids: false,
+              }
+            : {
+                privacyStatus: options.privacyStatus || 'public',
+              };
         const response = await youtube.videos.insert({
             part: 'snippet,status',
             requestBody: {
-                snippet: { title: title.substring(0, 100), description: description },
-                status: { privacyStatus: 'public' }
+                snippet: { title: title.substring(0, 100), description: safeDescription },
+                status
             },
             media: { body: fs.createReadStream(videoPath) }
         });

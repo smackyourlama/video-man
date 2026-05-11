@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "targetUploads": 1000,
+  "completedUploads": 0,
+  "failedUploads": 0,
+  "currentJob": null,
+  "nextPublishAt": null,
+  "publishIntervalMinutes": 60,
+  "jobs": []
+}

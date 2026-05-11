@@ -6,6 +6,7 @@
   "scripts": {
     "test": "python3 scripts/test_voice_profiles.py && python3 scripts/audit_voice_pipeline.py",
     "start": "node run.js \"Your First Video Topic Here\"",
+    "scheduler:start": "node scheduler.js",
     "voice:test": "python3 scripts/test_voice_profiles.py",
     "voice:audit": "python3 scripts/audit_voice_pipeline.py"
   },

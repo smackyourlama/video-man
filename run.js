@@ -106,15 +106,45 @@ async function processVideoWorkflow(payloadString) {
         // 5. Upload to YouTube
         if (payload.action === "generate_only") {
             console.log("Flag 'generate_only' detected. Skipping YouTube upload. Video saved locally.");
-            return;
+            return {
+                mode: 'generate_only',
+                channelName,
+                title,
+                description,
+                finalVideoPath,
+                thumbnailPath: finalThumbPath,
+                totalDuration
+            };
         }
 
-        const youtubeUrl = await uploadYouTubeVideo(finalVideoPath, title, description, finalThumbPath, channelName);
+        const youtubeUrl = await uploadYouTubeVideo(
+            finalVideoPath,
+            title,
+            description,
+            finalThumbPath,
+            channelName,
+            {
+                publishAt: payload.publishAt,
+                privacyStatus: payload.privacyStatus,
+            }
+        );
         console.log(`\n🎉 Video Man completed! Your video is uploaded at: ${youtubeUrl}`);
 
         saveVideoHistory(channelName, { topic: payload.topic, title: title, url: youtubeUrl });
+        return {
+            mode: 'uploaded',
+            channelName,
+            title,
+            description,
+            finalVideoPath,
+            thumbnailPath: finalThumbPath,
+            totalDuration,
+            youtubeUrl,
+            publishAt: payload.publishAt || null,
+        };
     } catch (error) {
         console.error('\n❌ Video Man encountered an error:', error.message);
+        throw error;
     }
 }
 
