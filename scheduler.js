@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { processVideoWorkflow } = require('./run');
 const { loadSchedulerState, saveSchedulerState } = require('./scheduler_state');
+const { hasTopicHistory, getRecentTopics } = require('./history_manager');
 
 const CHANNEL_PROFILES = {
   'Operator Logic': {
@@ -53,6 +54,7 @@ const CHANNEL_NAMES = Object.keys(CHANNEL_PROFILES);
 const TARGET_UPLOADS = Number(process.env.VIDEOMAN_TARGET_UPLOADS || 1000);
 const PUBLISH_INTERVAL_MINUTES = Number(process.env.VIDEOMAN_PUBLISH_INTERVAL_MINUTES || 60);
 const LOOP_DELAY_MS = Number(process.env.VIDEOMAN_LOOP_DELAY_MS || 5000);
+const MAX_RETRIES = Number(process.env.VIDEOMAN_MAX_RETRIES || 3);
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -65,6 +67,21 @@ function selectJobSeed(index) {
   return { channelName, profile, topic };
 }
 
+function pickUniqueSeed(index) {
+  for (let offset = 0; offset < CHANNEL_NAMES.length * 10; offset += 1) {
+    const seed = selectJobSeed(index + offset);
+    if (!hasTopicHistory(seed.channelName, seed.topic)) return seed;
+  }
+
+  const seed = selectJobSeed(index);
+  const recentTopics = new Set(getRecentTopics(seed.channelName, 10).map((topic) => String(topic).trim().toLowerCase()));
+  const fallbackTopic = `${seed.topic} Part ${index + 1}`;
+  if (!recentTopics.has(fallbackTopic.toLowerCase())) {
+    return { ...seed, topic: fallbackTopic, duplicateFallback: true };
+  }
+  return { ...seed, topic: `${seed.topic} Update ${index + 1}`, duplicateFallback: true };
+}
+
 function computeNextPublishAt(state) {
   const base = state.nextPublishAt ? new Date(state.nextPublishAt) : new Date();
   if (Number.isNaN(base.getTime())) return new Date(Date.now() + PUBLISH_INTERVAL_MINUTES * 60 * 1000).toISOString();
@@ -74,7 +91,7 @@ function computeNextPublishAt(state) {
 
 function reserveJob(state) {
   const jobIndex = state.completedUploads + state.failedUploads;
-  const seed = selectJobSeed(jobIndex);
+  const seed = pickUniqueSeed(jobIndex);
   const publishAt = computeNextPublishAt(state);
   const job = {
     id: `job-${jobIndex + 1}`,
@@ -83,8 +100,14 @@ function reserveJob(state) {
     createdAt: new Date().toISOString(),
     channelName: seed.channelName,
     topic: seed.topic,
+    retries: 0,
+    duplicateFallback: !!seed.duplicateFallback,
     publishAt,
   };
+
+  if (seed.duplicateFallback) {
+    state.duplicateSkips += 1;
+  }
 
   state.currentJob = job;
   state.nextPublishAt = new Date(new Date(publishAt).getTime() + PUBLISH_INTERVAL_MINUTES * 60 * 1000).toISOString();
@@ -110,15 +133,45 @@ function markJobComplete(state, jobId, result) {
 }
 
 function markJobFailed(state, jobId, error) {
+  const failedJob = state.jobs.find((job) => job.id === jobId);
+  const retries = (failedJob?.retries || 0) + 1;
+
+  if (failedJob && retries < MAX_RETRIES) {
+    state.currentJob = null;
+    state.jobs = state.jobs.map((job) => job.id === jobId ? {
+      ...job,
+      status: 'retrying',
+      retries,
+      lastError: error.message,
+      retryAt: new Date(Date.now() + retries * 60 * 1000).toISOString(),
+    } : job);
+    saveSchedulerState(state);
+    return 'retry';
+  }
+
   state.failedUploads += 1;
   state.currentJob = null;
   state.jobs = state.jobs.map((job) => job.id === jobId ? {
     ...job,
     status: 'failed',
+    retries,
     failedAt: new Date().toISOString(),
     error: error.message,
   } : job);
   saveSchedulerState(state);
+  return 'failed';
+}
+
+async function retryPendingJobs() {
+  const state = loadSchedulerState();
+  const retryJob = state.jobs.find((job) => job.status === 'retrying');
+  if (!retryJob) return null;
+  if (retryJob.retryAt && new Date(retryJob.retryAt).getTime() > Date.now()) return null;
+
+  state.currentJob = { ...retryJob, status: 'processing' };
+  state.jobs = state.jobs.map((job) => job.id === retryJob.id ? state.currentJob : job);
+  saveSchedulerState(state);
+  return state.currentJob;
 }
 
 async function runSchedulerLoop() {
@@ -138,7 +191,7 @@ async function runSchedulerLoop() {
       saveSchedulerState(state);
     }
 
-    const job = reserveJob(loadSchedulerState());
+    const job = await retryPendingJobs() || reserveJob(loadSchedulerState());
     console.log(`[Scheduler] Processing ${job.id}: ${job.channelName} | ${job.topic} | publishAt=${job.publishAt}`);
 
     try {
@@ -149,13 +202,14 @@ async function runSchedulerLoop() {
         niche: profile.niche,
         tone: profile.tone,
         publishAt: job.publishAt,
-        privacyStatus: 'private'
+        privacyStatus: 'private',
+        cleanupAfterUpload: true,
       }));
       markJobComplete(loadSchedulerState(), job.id, result);
       console.log(`[Scheduler] Completed ${job.id}: ${result.youtubeUrl}`);
     } catch (error) {
-      markJobFailed(loadSchedulerState(), job.id, error);
-      console.error(`[Scheduler] Failed ${job.id}:`, error.message);
+      const failureMode = markJobFailed(loadSchedulerState(), job.id, error);
+      console.error(`[Scheduler] Failed ${job.id} (${failureMode}):`, error.message);
     }
 
     await sleep(LOOP_DELAY_MS);

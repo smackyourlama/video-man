@@ -9,6 +9,7 @@ const DEFAULT_STATE = {
   targetUploads: 1000,
   completedUploads: 0,
   failedUploads: 0,
+  duplicateSkips: 0,
   currentJob: null,
   nextPublishAt: null,
   publishIntervalMinutes: 60,

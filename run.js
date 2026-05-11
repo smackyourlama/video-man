@@ -6,6 +6,22 @@ const { saveVideoHistory } = require('./history_manager');
 const { execSync } = require('child_process');
 const { renderRemotionVideo } = require('./render_remotion');
 
+function safeUnlink(filePath) {
+    if (!filePath) return;
+    try {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    } catch (error) {
+        console.warn(`[Cleanup] Failed to remove ${filePath}: ${error.message}`);
+    }
+}
+
+function cleanupGeneratedFiles(result) {
+    if (!result) return;
+    safeUnlink(result.finalVideoPath);
+    if (result.thumbnailPath && !String(result.thumbnailPath).includes('/processed/')) return;
+    safeUnlink(result.thumbnailPath);
+}
+
 const getAudioDuration = (file) => {
     try {
         const ffmpegPath = '/data/.openclaw/workspace/video-man/node_modules/@ffmpeg-installer/linux-x64/ffmpeg';
@@ -131,7 +147,7 @@ async function processVideoWorkflow(payloadString) {
         console.log(`\n🎉 Video Man completed! Your video is uploaded at: ${youtubeUrl}`);
 
         saveVideoHistory(channelName, { topic: payload.topic, title: title, url: youtubeUrl });
-        return {
+        const result = {
             mode: 'uploaded',
             channelName,
             title,
@@ -142,6 +158,10 @@ async function processVideoWorkflow(payloadString) {
             youtubeUrl,
             publishAt: payload.publishAt || null,
         };
+        if (payload.cleanupAfterUpload) {
+            cleanupGeneratedFiles(result);
+        }
+        return result;
     } catch (error) {
         console.error('\n❌ Video Man encountered an error:', error.message);
         throw error;
@@ -157,4 +177,4 @@ if (require.main === module) {
     processVideoWorkflow(topic).then(() => process.exit(0)).catch(() => process.exit(1));
 }
 
-module.exports = { processVideoWorkflow };
+module.exports = { processVideoWorkflow, cleanupGeneratedFiles };

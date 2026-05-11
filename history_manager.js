@@ -32,4 +32,15 @@ function saveVideoHistory(channelName, videoData) {
     console.log(`[History] Saved video history for ${channelName}. Total videos: ${data[channelName].length}`);
 }
 
-module.exports = { getChannelHistory, saveVideoHistory };
+function hasTopicHistory(channelName, topic) {
+    if (!topic) return false;
+    const needle = String(topic).trim().toLowerCase();
+    return getChannelHistory(channelName).some((entry) => String(entry.topic || '').trim().toLowerCase() === needle);
+}
+
+function getRecentTopics(channelName, limit = 25) {
+    const history = getChannelHistory(channelName);
+    return history.slice(-limit).map((entry) => entry.topic).filter(Boolean);
+}
+
+module.exports = { getChannelHistory, saveVideoHistory, hasTopicHistory, getRecentTopics };
